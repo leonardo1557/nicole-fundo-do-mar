@@ -5,6 +5,7 @@
 | config.js | Constantes de movimento, volumes, velocidade e pool |
 | simulation.js | Estado, relógio fixo, gerador determinístico e colisão varrida |
 | input.js | Reconhecimento de swipe e teclado; cancelamento/captura de ponteiro |
+| underwater.js | Modelo original da Nicole, materiais e decoração instanciada/reciclada |
 | renderer.js | Babylon Engine/Scene, câmera fixa, meshes reciclados, interpolação |
 | viewport.js | Adia redimensionamento e mudança de resolução até antes do desenho |
 | performance.js | Janela circular de 600 quadros e latência de comando até render |
@@ -33,3 +34,10 @@ Fluxo: entrada altera intenção → simulação calcula posição a 120 Hz → 
 Babylon.js 9.27.1 e Vite 8.3.0 fixados; lockfile incluído. Build inicial: entrada JS aproximadamente 1,03 MB / 246 kB gzip, mais shaders sob demanda. Aviso de chunk grande do bundler permanece registrado; não implica sozinho FPS baixo, mas tempo de carregamento deve ser medido no celular.
 
 Referência de otimização consultada: https://github.com/BabylonJS/Documentation/blob/master/content/features/featuresDeepDive/scene/optimize_your_scene.md
+
+
+## Etapa 3 — visual
+
+`NicoleModel` usa pivôs hierárquicos e geometria simples. A animação deriva da distância simulada, portanto congela na pausa. Altura visual acompanha imediatamente o agachamento. `UnderwaterWorld` instancia 36 elementos laterais e 10 bolhas, reciclando-os sem criar meshes no loop. A geometria decorativa permanece fora das faixas. Modelo + decoração usam 66 meshes (incluindo fontes invisíveis), 20 geometrias, 11 materiais e zero texturas. São 116 meshes na cena completa, incluindo 24 slots de obstáculos e 20 marcas da pista. Contagem de meshes não equivale a draw calls, porque os elementos repetidos são instâncias.
+
+Câmera, simulação, volumes de colisão, geração de obstáculos, entrada e política de resolução preservados. O desenho mantém o ajuste de canvas antes de renderizar, corrigido na base aprovada.

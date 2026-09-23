@@ -15,7 +15,7 @@ Base do repositório: `a5f9a430e69f0d31ce34e206eaff3da8afa813e2`. Havia apenas H
 - Visão futura: primeira corrida com meta (30 ou 50 pérolas/distância foi discutido; protótipo adotou 30), chegada ao castelo, recado e modo infinito. Não implementar isso nesta fase.
 - Plano anterior recuperado: base 3D jogável; visual submarino; polimento com som e extras. A numeração antiga não equivale às etapas solicitadas agora.
 
-## Recorte autorizado nesta solicitação
+## Recorte inicial — etapas 1 e 2
 
 ### ETAPA 1 — arquitetura técnica 3D
 
@@ -41,6 +41,21 @@ Base do repositório: `a5f9a430e69f0d31ce34e206eaff3da8afa813e2`. Havia apenas H
 
 **Não encerrar as etapas como aprovadas até validar fluidez em celular real.** Meta proposta de avaliação: próximo de 60 FPS sustentados, p95 de quadro até 25 ms, comando até primeiro quadro abaixo de 50 ms, sem travamentos perceptíveis, gestos perdidos ou colisões incorretas. São critérios de teste desta implementação, não números recuperados do plano original. Registrar aparelho, SO, navegador e duração. Android Chrome e iPhone Safari devem ser verificados antes de aprovação ampla mobile.
 
-## Fora do recorte
+## Fora do recorte inicial
 
-Não desenvolver arte final, castelo, áudio, pérolas/missão, power-ups, partículas, recordes ou polimento. Essas pendências seguem preservadas para fases futuras e não estão autorizadas por esta entrega.
+Não desenvolver arte final, castelo, áudio, pérolas/missão, power-ups, partículas, recordes ou polimento. Essas pendências seguem preservadas para fases futuras e não foram desenvolvidas na entrega inicial. Autorizações posteriores estão registradas abaixo.
+
+
+## Aprovação e avanço autorizado — ETAPA 3
+
+Após testar salto, agachamento e correção de piscada, o usuário respondeu “Está ótimo”. As etapas 1 e 2 foram aceitas no teste dele. Base estável: `7202a70488bce9e25e945b0fea3eceff30ba8b6c`. Não foram coletadas métricas nem confirmados modelo/navegador, portanto não se declara certificação mobile ampla.
+
+Em seguida o usuário pediu “Qual a próxima fase? Vamos avançar”. Recorte adotado: identidade visual, personagem e cenário, preservando os controles aprovados.
+
+1. Nicole em 3D estilizado, sereia com cabelo loiro escuro e animação simples.
+2. Oceano de cores suaves, caminho de areia, corais/algas/pedras laterais e poucas bolhas geométricas recicladas.
+3. Interface coerente com o tema; mesmas cores e volumes de obstáculos para legibilidade e previsibilidade.
+4. Modelos originais gerados em código, sem arquivos externos, texturas, sombras ou pós-processamento.
+5. Testes de geometria/alocações e regressão; validação visual/performance no celular após publicação.
+
+A física, as hitboxes, a geração de obstáculos, a câmera e os gestos aprovados não mudam nesta etapa. Castelo e coleta de pérolas serão o próximo recorte proposto, depois de aprovar o visual e verificar que a fluidez foi preservada. Áudio/polimento ficam para depois.

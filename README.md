@@ -1,8 +1,8 @@
 # Nicole no Fundo do Mar · runner 3D
 
-Implementação das **ETAPAS 1 e 2**, em Babylon.js. A cápsula é um marcador temporário da personagem. Arte final, castelo, pérolas, áudio e polimento não fazem parte desta entrega.
+Runner mobile em Babylon.js. **Etapas 1 e 2 aprovadas pelo usuário no aparelho**. Etapa 3 em avaliação: Nicole como sereia estilizada, cenário submarino e interface em cores suaves. Castelo, pérolas/missão e áudio seguem para etapas posteriores.
 
-**Status: implementado, em validação. Não aprovado em celular real.**
+**Status: visual da etapa 3 implementado; aguardando avaliação no celular.** A aprovação anterior é do teste do usuário, não certificação em todos os aparelhos.
 
 ## Executar
 

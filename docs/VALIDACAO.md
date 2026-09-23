@@ -1,4 +1,4 @@
-# Validação — em andamento, NÃO aprovada em celular
+# Validação — mecânica aprovada pelo usuário; etapa visual em avaliação
 
 ## Evidência automatizada
 
@@ -65,3 +65,14 @@ Usuário confirmou que a jogabilidade/salto funcionam bem, mas não encontrou ba
 Encontrada causa plausível da piscada: `lowerResolution()` era executado após `scene.render()` e chamava `setHardwareScalingLevel()`, que no Babylon 9.27.1 chama `resize()` e altera width/height do canvas, limpando o buffer recém-renderizado. ResizeObserver também redimensionava fora do desenho. Ambas as operações agora só marcam pendência, aplicada imediatamente antes da próxima renderização. Sem reprodução visual no aparelho, esta é uma correção de uma condição real no código, não confirmação de que toda piscada tinha essa origem.
 
 Diagnóstico opt-in inclui contadores de redimensionamentos e perdas de contexto WebGL, sem transmissão de dados. 14 testes e build aprovados: adicionadas garantia da barra central em 30 sementes e ordem adiada/coalescida dos ajustes de canvas com engine simulado. Navegador remoto permanece sem WebGL; validar se a piscada desapareceu no celular. Sem mudanças no salto aprovado pelo usuário.
+
+
+## Etapa 3 — visual submarino
+
+Base mecânica aceita pelo usuário em teste próprio (“Está ótimo”). Nova etapa autorizada na sequência. Foram mantidos sem alterações `simulation.js`, `config.js`, `input.js` e `viewport.js`; a câmera também mantém posição, alvo e FOV.
+
+15 testes aprovados, incluindo construção dos modelos com Babylon NullEngine, instâncias visíveis, limites de decoração fora das faixas, envelope do agachamento e quantidade fixa de objetos ao percorrer distâncias até 1.000.000 m. NullEngine não usa GPU: isso verifica geometria e integração, não aparência de shaders, FPS ou renderização WebGL. Prévia geométrica da personagem frente/costas inspecionada por rasterização CPU auxiliar; não representa screenshot do jogo.
+
+Build aprovado. Entrada JS ~1,05 MB / 252 kB gzip (antes ~246 kB gzip); sem modelos, fontes ou texturas baixados de servidores externos. Aviso de chunk >500 kB permanece. Foram adicionados 66 meshes à cena, incluindo fontes e instâncias; medir FPS no celular antes de aprovar a fase visual.
+
+Navegador remoto anteriormente retornou WebGL indisponível; não apresentar esta implementação como visualmente validada naquele navegador. Conferir no aparelho: personagem legível de costas, cenário nas laterais, cores de obstáculos distintas, agachamento, nenhuma piscada e fluidez semelhante à base aprovada. Se necessário, reduzir densidade de cenário sem mudar mecânica.
