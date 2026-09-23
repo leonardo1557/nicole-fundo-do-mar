@@ -76,8 +76,8 @@ export class Runner {
         // lane; 26m leaves >=1.3s at top speed (two lane switches take 0.282s).
         const openLane = Math.floor(this.random() * 3);
         const count = this.row < 3 ? 1 : (this.random() < 0.55 ? 2 : 1);
-        const lane = (openLane + 1) % 3;
-        if (this.row >= 3 && this.row % 4 === 3) this.spawn(lane, z, C.overheadHeight, C.overheadBottom);
+        const lane = this.row === 1 ? 1 : (openLane + 1) % 3;
+        if (this.row % 3 === 1) this.spawn(lane, z, C.overheadHeight, C.overheadBottom);
         else this.spawn(lane, z, this.row % 3 === 0 ? C.lowHeight : C.highHeight);
         if (count === 2) this.spawn((openLane + 2) % 3, z, this.random() < 0.5 ? C.lowHeight : C.highHeight);
       }

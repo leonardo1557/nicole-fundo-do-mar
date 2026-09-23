@@ -56,3 +56,12 @@ Hipótese encontrada no código: janela curta de passagem sobre o bloco baixo. S
 Incluído agachamento por swipe para baixo/seta para baixo/S, duração de 0,8 s e barras verdes suspensas. Cabe na arquitetura existente, sem motor físico, animações finais ou novas dependências. Mantém-se agachado enquanto a barra já sobre a personagem termina de passar, evitando morte por levantar automaticamente.
 
 12 testes passaram e build aprovado. Novos testes: salto com chegada ao centro do obstáculo em 0,18/0,30/0,50/0,68 s nas velocidades 12/16/20 m/s; saltos muito tardios/antecipados continuam colidindo; barra colide em pé e permite agachamento; agachar não atravessa blocos no chão; pausa, troca de faixa, retorno automático, reset e swipe para baixo. Teste visual continua limitado pelo WebGL indisponível no navegador remoto. Requer reteste desta revisão no aparelho.
+
+
+## Revisão após relato de piscada preta e ausência percebida de barras
+
+Usuário confirmou que a jogabilidade/salto funcionam bem, mas não encontrou barras e observou breves telas pretas. O código anterior gerava a primeira barra a 138 m, em faixa aleatória. Agora a primeira fica a 86 m, no centro, e as seguintes a cada três linhas, mantendo faixa livre. Uma dica aparece quando há barra a menos de 24 m.
+
+Encontrada causa plausível da piscada: `lowerResolution()` era executado após `scene.render()` e chamava `setHardwareScalingLevel()`, que no Babylon 9.27.1 chama `resize()` e altera width/height do canvas, limpando o buffer recém-renderizado. ResizeObserver também redimensionava fora do desenho. Ambas as operações agora só marcam pendência, aplicada imediatamente antes da próxima renderização. Sem reprodução visual no aparelho, esta é uma correção de uma condição real no código, não confirmação de que toda piscada tinha essa origem.
+
+Diagnóstico opt-in inclui contadores de redimensionamentos e perdas de contexto WebGL, sem transmissão de dados. 14 testes e build aprovados: adicionadas garantia da barra central em 30 sementes e ordem adiada/coalescida dos ajustes de canvas com engine simulado. Navegador remoto permanece sem WebGL; validar se a piscada desapareceu no celular. Sem mudanças no salto aprovado pelo usuário.

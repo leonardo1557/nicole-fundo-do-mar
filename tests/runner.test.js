@@ -119,3 +119,14 @@ test('down swipe is one crouch command; jump cancels crouch in open space', () =
   r.command('crouch'); tick(r, 0.9);
   assert.equal(r.player.height, C.crouchHeight); assert.equal(r.player.y, 0);
 });
+
+test('first crouch bar appears in center at 86m for every seed', () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    const r = new Runner({ seed });
+    const bars = r.obstacles.filter(o => o.active && o.bottom > 0);
+    assert.equal(bars.length, 1);
+    assert.equal(bars[0].lane, 1);
+    assert.equal(bars[0].z, C.firstRow + C.rowSpacing);
+    assert.equal(r.obstacles.filter(o => o.active && o.z === bars[0].z).length, 1);
+  }
+});

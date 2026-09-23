@@ -36,7 +36,7 @@ async function boot() {
   document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); last = performance.now(); });
   window.addEventListener('blur', pause);
   window.addEventListener('pagehide', pause);
-  canvas.addEventListener('webglcontextlost', () => { pause(); primary.disabled = true; $('message').textContent = 'O 3D foi interrompido. Aguarde a recuperação.'; });
+  canvas.addEventListener('webglcontextlost', () => { view.contextLosses++; pause(); primary.disabled = true; $('message').textContent = 'O 3D foi interrompido. Aguarde a recuperação.'; });
   view.engine.onContextRestoredObservable.add(() => { primary.disabled = false; $('message').textContent = '3D recuperado. Toque em continuar.'; resetTiming(); });
   $('diagnostics').hidden = !debug; $('qa').hidden = !qa;
   if (qa) $('apply-scenario').addEventListener('click', () => { runner.scenario = $('scenario').value; runner.start(); resetTiming(); syncUI(); });
@@ -58,9 +58,11 @@ async function boot() {
     syncUI();
     if (now - uiTime > 200) {
       uiTime = now; $('distance').textContent = Math.floor(runner.distance);
+      const barAhead = runner.obstacles.some(o => o.active && o.bottom > 0 && o.z > -1 && o.z < 24);
+      $('hint').textContent = barAhead ? 'Barra verde: ↓ agachar ou desviar' : '← → mudar de faixa · ↑ saltar · ↓ agachar';
       if (debug) {
         const m = metrics.snapshot();
-        $('diagnostics').textContent = `${runner.state} · ${Math.floor(runner.distance)} m · ${runner.speed.toFixed(1)} m/s\nFaixa ${runner.player.lane + 1}/3 · x ${runner.player.x.toFixed(2)} · salto ${runner.player.y.toFixed(2)} m\nComandos ${runner.commands} · último ${runner.lastAction}\n${m.fps.toFixed(1)} FPS · p95 ${m.p95.toFixed(1)} ms · >50ms ${m.slow}/${m.frames}\nComando→quadro ${metrics.inputMs.toFixed(1)} ms · máx ${metrics.maxInputMs.toFixed(1)} ms\n${canvas.clientWidth}×${canvas.clientHeight} · escala ${view.pixelRatio.toFixed(2)} · meshes ${view.scene.meshes.length}`;
+        $('diagnostics').textContent = `${runner.state} · ${Math.floor(runner.distance)} m · ${runner.speed.toFixed(1)} m/s\nFaixa ${runner.player.lane + 1}/3 · x ${runner.player.x.toFixed(2)} · salto ${runner.player.y.toFixed(2)} m\nComandos ${runner.commands} · último ${runner.lastAction}\n${m.fps.toFixed(1)} FPS · p95 ${m.p95.toFixed(1)} ms · >50ms ${m.slow}/${m.frames}\nComando→quadro ${metrics.inputMs.toFixed(1)} ms · máx ${metrics.maxInputMs.toFixed(1)} ms\n${canvas.clientWidth}×${canvas.clientHeight} · escala ${view.pixelRatio.toFixed(2)} · meshes ${view.scene.meshes.length}\nRedimensões ${view.viewport.applied} · perdas WebGL ${view.contextLosses}`;
       }
     }
   });

@@ -9,13 +9,15 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
 import { CreateCapsule } from '@babylonjs/core/Meshes/Builders/capsuleBuilder';
 import '@babylonjs/core/Culling/ray';
+import { RenderViewport } from './viewport.js';
 import { CONFIG as C } from './config.js';
 
 export class RunnerView {
   constructor(canvas, runner) {
     this.runner = runner;
     this.engine = new Engine(canvas, false, { stencil: false, preserveDrawingBuffer: false, powerPreference: 'high-performance' }, false);
-    this.pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+    this.viewport = new RenderViewport(Math.min(window.devicePixelRatio || 1, 1.5));
+    this.contextLosses = 0;
     this.engine.setHardwareScalingLevel(1 / this.pixelRatio);
     this.scene = new Scene(this.engine);
     this.scene.clearColor = new Color4(0.035, 0.18, 0.23, 1);
@@ -51,16 +53,17 @@ export class RunnerView {
       const mesh = box(`obstacle-${o.id}`, C.obstacleWidth, 1, C.obstacleDepth, 0, 0, 0, this.lowMaterial);
       mesh.setEnabled(false); return mesh;
     });
-    this.resize = () => {
-      this.engine.resize();
-      const portrait = canvas.clientHeight > canvas.clientWidth;
+    this.canvas = canvas;
+    this.observer = new ResizeObserver(() => this.viewport.requestResize());
+    this.observer.observe(canvas);
+  }
+  get pixelRatio() { return this.viewport.pixelRatio; }
+  draw(alpha) {
+    if (this.viewport.apply(this.engine)) {
+      const portrait = this.canvas.clientHeight > this.canvas.clientWidth;
       this.camera.fovMode = portrait ? Camera.FOVMODE_HORIZONTAL_FIXED : Camera.FOVMODE_VERTICAL_FIXED;
       this.camera.fov = portrait ? 0.9 : 0.85;
-    };
-    this.observer = new ResizeObserver(this.resize); this.observer.observe(canvas);
-    this.resize();
-  }
-  draw(alpha) {
+    }
     const s = this.runner, lerp = (a, b) => a + (b - a) * alpha;
     this.avatar.scaling.y = s.player.height / C.playerHeight;
     this.avatar.position.set(lerp(s.previous.x, s.player.x), lerp(s.previous.y, s.player.y) + s.player.height / 2, 0);
@@ -77,11 +80,7 @@ export class RunnerView {
     this.scene.render();
   }
   // Conservative downshift only: avoids resolution oscillation in long runs.
-  lowerResolution() {
-    if (this.pixelRatio <= 0.75) return false;
-    this.pixelRatio = Math.max(0.75, this.pixelRatio - 0.25);
-    this.engine.setHardwareScalingLevel(1 / this.pixelRatio); return true;
-  }
+  lowerResolution() { return this.viewport.lowerResolution(); }
   async ready() { this.draw(1); await this.scene.whenReadyAsync(); }
   dispose() { this.observer.disconnect(); this.engine.dispose(); }
 }
