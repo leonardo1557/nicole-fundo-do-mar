@@ -17,6 +17,16 @@
 
 A tentativa inicial de abrir o servidor local no navegador remoto retornou `net::ERR_BLOCKED_BY_CLIENT`. A abertura direta da cópia compartilhada também foi rejeitada pela política do navegador (somente HTTP/HTTPS). Não foram tentados contornos dessa restrição. Inspeção visual e testes de interação ainda pendentes; não inferir sucesso do build como sucesso de execução WebGL.
 
+## Publicação autorizada e teste da URL pública
+
+Após autorização explícita do usuário, o PR #1 foi integrado e publicado em GitHub Pages. Workflow `35914033793`: sucesso; commit publicado `e581419f49b00e5fd205f041a31f0bebcab0843c`. Os checks de teste/build do commit anterior também passaram no GitHub Actions.
+
+URL aberta no navegador remoto: https://leonardo1557.github.io/nicole-fundo-do-mar/?debug=1
+
+A página e o JavaScript carregaram, mas a criação do Babylon Engine retornou `Error: WebGL not supported`. A interface exibiu corretamente a mensagem de falha e o botão Recarregar. Esse ambiente não permitiu executar/renderizar a cena; não houve teste de gameplay, FPS ou gestos no navegador. Não atribuir o problema ao aparelho do usuário sem testá-lo. Não alterar configurações de segurança para contornar a restrição.
+
+A publicação não representa aprovação das etapas 1 e 2. É necessário abrir o link em navegador com WebGL e realizar o checklist abaixo.
+
 ## Checklist para aceite no aparelho
 
 1. Abrir a prévia com `?debug=1` e anotar aparelho, SO, navegador e orientação.
@@ -32,5 +42,6 @@ A tentativa inicial de abrir o servidor local no navegador remoto retornou `net:
 | --- | --- |
 | Node 24 — simulação e controles puros | 8/8 aprovados |
 | Build Vite | Aprovado com aviso de tamanho |
-| Navegador com WebGL | Pendente |
+| Navegador remoto — URL pública | Página carregada; Engine impedido por WebGL indisponível |
+| Jogabilidade no navegador com WebGL | Pendente |
 | Celular físico | Pendente — gate de conclusão aberto |
