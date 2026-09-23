@@ -15,7 +15,7 @@
 
 ## Navegador
 
-A tentativa inicial de abrir o servidor local no navegador remoto retornou `net::ERR_BLOCKED_BY_CLIENT`. Inspeção visual e testes de interação ainda pendentes; não inferir sucesso do build como sucesso de execução WebGL.
+A tentativa inicial de abrir o servidor local no navegador remoto retornou `net::ERR_BLOCKED_BY_CLIENT`. A abertura direta da cópia compartilhada também foi rejeitada pela política do navegador (somente HTTP/HTTPS). Não foram tentados contornos dessa restrição. Inspeção visual e testes de interação ainda pendentes; não inferir sucesso do build como sucesso de execução WebGL.
 
 ## Checklist para aceite no aparelho
 

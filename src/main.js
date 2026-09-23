@@ -48,7 +48,7 @@ async function boot() {
     view.draw(alpha);
     if (runner.state === 'running') {
       warmup += elapsed;
-      if (warmup > 2) metrics.record(performance.now());
+      metrics.record(performance.now(), warmup > 2);
       if (warmup - lastQualityCheck >= 3 && metrics.count > 60) {
         lastQualityCheck = warmup;
         if (metrics.snapshot().fps < 50) slowWindows++; else slowWindows = 0;
