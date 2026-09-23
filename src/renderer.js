@@ -4,10 +4,13 @@ import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
 import { Camera } from '@babylonjs/core/Cameras/camera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
+import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
 import '@babylonjs/core/Culling/ray';
 import { ART, NicoleModel, UnderwaterWorld, seaMaterial } from './underwater.js';
+import { ObstacleArt } from './obstacle-art.js';
+import { Seafloor } from './seafloor.js';
 import { RenderViewport } from './viewport.js';
 import { CONFIG as C } from './config.js';
 
@@ -22,36 +25,29 @@ export class RunnerView {
     const water = Color3.FromHexString(ART.water);
     this.scene.clearColor = new Color4(water.r, water.g, water.b, 1);
     this.scene.fogMode = Scene.FOGMODE_LINEAR;
-    this.scene.fogStart = 55; this.scene.fogEnd = 145;
+    this.scene.fogStart = 38; this.scene.fogEnd = 125;
     this.scene.fogColor = water;
     this.scene.skipPointerMovePicking = true;
     this.scene.autoClear = true;
-    this.camera = new FreeCamera('third-person', new Vector3(0, 5.6, -10), this.scene);
-    this.camera.setTarget(new Vector3(0, 1.1, 13));
+    this.camera = new FreeCamera('third-person', new Vector3(0, 3.8, -7), this.scene);
+    this.camera.setTarget(new Vector3(0, 1.0, 12));
     this.camera.minZ = 0.1; this.camera.maxZ = 170;
     const light = new HemisphericLight('ambient', new Vector3(0, 1, -0.3), this.scene);
-    light.intensity = 1.05;
+    light.intensity = .72;
+    const sun=new DirectionalLight('surface-light',new Vector3(-.6,-1,.35),this.scene);
+    sun.intensity=.65;sun.diffuse=Color3.FromHexString('#ffedce');
     light.groundColor = Color3.FromHexString('#83a6b0');
-    const floor = seaMaterial(this.scene, 'sand-path', ART.sand);
+    const floor = seaMaterial(this.scene, 'sand-path', '#ffffff');
     const stripe = seaMaterial(this.scene, 'shell-lane-lines', ART.lane);
-    const seabed = seaMaterial(this.scene, 'seabed', ART.seabed);
-    this.lowMaterial = seaMaterial(this.scene, 'jumpable-block', ART.low);
-    this.overheadMaterial = seaMaterial(this.scene, 'crouch-bar', ART.overhead);
-    this.highMaterial = seaMaterial(this.scene, 'dodge-block', ART.high);
     const box = (name, width, height, depth, x, y, z, mat) => {
       const mesh = CreateBox(name, { width, height, depth }, this.scene);
       mesh.position.set(x, y, z); mesh.material = mat; mesh.isPickable = false; return mesh;
     };
-    box('ocean-floor', 40, 0.12, 180, 0, -0.18, 72, seabed).freezeWorldMatrix();
-    box('track', 7.7, 0.18, 180, 0, -0.09, 72, floor).freezeWorldMatrix();
-    for (const x of [-3.75, -1.125, 1.125, 3.75]) box('lane-edge', 0.055, 0.015, 180, x, 0.012, 72, stripe).freezeWorldMatrix();
-    this.markers = Array.from({ length: 20 }, (_, i) => box(`travel-marker-${i}`, 7.5, 0.008, 0.045, 0, 0.02, i * 8, stripe));
+    this.floor = new Seafloor(this.scene, floor);
+    for (const x of [-3.75, -1.125, 1.125, 3.75]) box('shell-trail', 0.025, 0.008, 180, x, 0.001, 72, stripe).freezeWorldMatrix();
     this.nicole = new NicoleModel(this.scene);
     this.world = new UnderwaterWorld(this.scene);
-    this.meshes = runner.obstacles.map(o => {
-      const mesh = box(`obstacle-${o.id}`, C.obstacleWidth, 1, C.obstacleDepth, 0, 0, 0, this.lowMaterial);
-      mesh.setEnabled(false); return mesh;
-    });
+    this.obstacles = new ObstacleArt(this.scene, runner.obstacles, (name,color)=>seaMaterial(this.scene,name,color));
     this.canvas = canvas;
     this.observer = new ResizeObserver(() => this.viewport.requestResize());
     this.observer.observe(canvas);
@@ -62,20 +58,14 @@ export class RunnerView {
       const portrait = this.canvas.clientHeight > this.canvas.clientWidth;
       this.camera.fovMode = portrait ? Camera.FOVMODE_HORIZONTAL_FIXED : Camera.FOVMODE_VERTICAL_FIXED;
       this.camera.fov = portrait ? 0.9 : 0.85;
+      this.world.setQuality(this.pixelRatio);
     }
     const s = this.runner, lerp = (a, b) => a + (b - a) * alpha;
     const distance = lerp(s.previous.distance, s.distance);
-    this.nicole.update(lerp(s.previous.x, s.player.x), lerp(s.previous.y, s.player.y), s.player.height, distance * .3, (s.player.lane - 1) * C.laneWidth);
+    this.nicole.update(lerp(s.previous.x, s.player.x), lerp(s.previous.y, s.player.y), s.player.height, distance * .3, (s.player.lane - 1) * C.laneWidth, s.player.vy, s.state);
     this.world.update(distance);
-    for (let i = 0; i < this.markers.length; i++) this.markers[i].position.z = ((i * 8 - distance) % 160 + 160) % 160 - 12;
-    for (const o of s.obstacles) {
-      const mesh = this.meshes[o.id];
-      mesh.setEnabled(o.active);
-      if (!o.active) continue;
-      mesh.position.set(o.x, (o.bottom || 0) + o.height / 2, lerp(o.previousZ, o.z));
-      mesh.scaling.y = o.height;
-      mesh.material = o.bottom > 0 ? this.overheadMaterial : o.height === C.lowHeight ? this.lowMaterial : this.highMaterial;
-    }
+    this.floor.update(distance);
+    this.obstacles.update(s.obstacles, alpha);
     this.scene.render();
   }
   // Conservative downshift only: avoids resolution oscillation in long runs.

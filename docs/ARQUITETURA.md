@@ -41,3 +41,12 @@ Referência de otimização consultada: https://github.com/BabylonJS/Documentati
 `NicoleModel` usa pivôs hierárquicos e geometria simples. A animação deriva da distância simulada, portanto congela na pausa. Altura visual acompanha imediatamente o agachamento. `UnderwaterWorld` instancia 36 elementos laterais e 10 bolhas, reciclando-os sem criar meshes no loop. A geometria decorativa permanece fora das faixas. Modelo + decoração usam 66 meshes (incluindo fontes invisíveis), 20 geometrias, 11 materiais e zero texturas. São 116 meshes na cena completa, incluindo 24 slots de obstáculos e 20 marcas da pista. Contagem de meshes não equivale a draw calls, porque os elementos repetidos são instâncias.
 
 Câmera, simulação, volumes de colisão, geração de obstáculos, entrada e política de resolução preservados. O desenho mantém o ajuste de canvas antes de renderizar, corrigido na base aprovada.
+
+
+## Etapa 3 aprofundada — revisão vigente
+
+A descrição acima documenta a primeira versão visual. A revisão vigente substitui `NicoleModel` por `nicole.js`, com superfícies contínuas (`art-geometry.js`), rig hierárquico e deformação da cauda usando buffers reutilizados. Há poses distintas de subida, queda, aterrissagem e mergulho; o mergulho não achata o modelo por escala global. Não se trata de animação capturada nem de um personagem de um catálogo comercial.
+
+`obstacle-art.js` prepara três modelos-base e três instâncias por slot, habilitando só a variante ativa. Volumes visuais se mantêm próximos às hitboxes; testes verificam os limites. `seafloor.js` usa oito segmentos de areia contíguos com cor por vértice, relevos fora das faixas e reciclagem. `sea-life.js` mantém 12 peixes articulados, com corpo/cauda/olhos instanciados; 28 bolhas de aro sobem em plumas laterais. Efeitos acompanham a distância simulada, portanto param na pausa. Quando o escalonamento cai a 1 ou menos, reduz-se a densidade de decoração, peixes e bolhas; mecânica e obstáculos permanecem completos.
+
+A câmera passa de (0,5.6,-10) a (0,3.8,-7), mirando (0,1,12), para aproximar a personagem; conserva FOV e três faixas visíveis. Luz direcional suave complementa a hemisférica, sem sombras/pós-processamento/texturas. 248 meshes nos módulos de arte (incluindo fontes e variantes desabilitadas), mais quatro guias de faixa; 56 geometrias antes das guias e 25 materiais. Contagem não equivale a draw calls. Sem novas dependências ou arquivos externos. A física, configuração de movimentos, gestos e correção de resize seguem iguais à mecânica aprovada.

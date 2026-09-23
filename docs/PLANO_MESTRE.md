@@ -59,3 +59,14 @@ Em seguida o usuário pediu “Qual a próxima fase? Vamos avançar”. Recorte 
 5. Testes de geometria/alocações e regressão; validação visual/performance no celular após publicação.
 
 A física, as hitboxes, a geração de obstáculos, a câmera e os gestos aprovados não mudam nesta etapa. Castelo e coleta de pérolas serão o próximo recorte proposto, depois de aprovar o visual e verificar que a fluidez foi preservada. Áudio/polimento ficam para depois.
+
+
+## Aprofundamento da etapa 3 — personagem, obstáculos e oceano
+
+O usuário considerou o primeiro visual/animação simples demais e pediu referência de fluidez e expressão de Subway Surfers. Autorizou aprofundar Nicole, obstáculos, pista e entorno, incluindo peixes e bolhas. Esta revisão é uma nova versão visual; a aprovação anterior da mecânica não significa aprovação desta arte.
+
+- Nicole com superfície de cauda deformável, quadril/torso/cabeça/ombros/cotovelos articulados, mechas de cabelo e poses específicas de salto, queda, aterrissagem e mergulho. Modelo original gerado em código, sem reutilizar assets da referência.
+- Obstáculos com relevo de concha, recife e algas nas cores de ação; conservar envelopes de colisão.
+- Areia em segmentos contínuos reciclados, relevo só nas laterais, corais/algas, cardumes e bolhas em colunas ascendentes.
+- Câmera um pouco mais próxima para ler a personagem; iluminação direcional sem sombras em tempo real.
+- Manter física/controles; avaliação visual e de desempenho no aparelho antes do próximo recorte.

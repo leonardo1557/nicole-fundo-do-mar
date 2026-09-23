@@ -6,10 +6,13 @@ import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder.
 import { CreateTorus } from '@babylonjs/core/Meshes/Builders/torusBuilder.js';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial.js';
 import { Color3 } from '@babylonjs/core/Maths/math.color.js';
+import { NicoleModel as NicoleRig } from './nicole.js';
+import { leaf, oval } from './art-geometry.js';
+import { FishSchool } from './sea-life.js';
 import { seededRandom } from './simulation.js';
 
 export const ART = Object.freeze({
-  water: '#65b9c5', sand: '#e5d6b1', lane: '#fff2d4', seabed: '#79b9b5',
+  water: '#56aabc', sand: '#e5d6b1', lane: '#fff2d4', seabed: '#79b9b5',
   low: '#e7b24c', high: '#9670b3', overhead: '#3b9b80',
   skin: '#f4c8ae', hair: '#ac814b', pink: '#df8fb8', tail: '#61c1bd', fin: '#b293cd',
 });
@@ -17,7 +20,8 @@ export const ART = Object.freeze({
 export function seaMaterial(scene, name, hex, glow = 0) {
   const m = new StandardMaterial(name, scene);
   m.diffuseColor = Color3.FromHexString(hex);
-  m.specularColor.set(0, 0, 0);
+  m.specularColor.set(.055, .055, .055);
+  m.specularPower=32;
   m.emissiveColor = m.diffuseColor.scale(glow);
   m.freeze();
   return m;
@@ -31,53 +35,9 @@ function ellipsoid(scene, name, size, at, mat, parent) {
   return mesh;
 }
 
-// Self-contained, original low-poly model. Root origin is at the feet; its
-// dimensions fit the existing player envelope without changing the simulation.
-export class NicoleModel {
-  constructor(scene) {
-    this.root = new TransformNode('Nicole', scene);
-    const skin = seaMaterial(scene, 'nicole-skin', ART.skin);
-    const hair = seaMaterial(scene, 'nicole-dark-blonde-hair', ART.hair);
-    const pink = seaMaterial(scene, 'nicole-shell-top', ART.pink);
-    const tail = seaMaterial(scene, 'nicole-tail', ART.tail);
-    const fin = seaMaterial(scene, 'nicole-fins', ART.fin);
-    const eyes = seaMaterial(scene, 'nicole-eyes', '#344c54');
-    ellipsoid(scene, 'face', [.41, .43, .36], [0, 1.125, .015], skin, this.root);
-    ellipsoid(scene, 'hair-cap', [.44, .28, .39], [0, 1.25, -.035], hair, this.root);
-    ellipsoid(scene, 'hair-back', [.40, .48, .19], [0, 1.06, -.15], hair, this.root);
-    ellipsoid(scene, 'hair-side', [.12, .30, .18], [-.185, 1.11, .04], hair, this.root);
-    ellipsoid(scene, 'hair-flower', [.13, .13, .08], [.185, 1.27, -.135], pink, this.root);
-    ellipsoid(scene, 'flower-center', [.045, .045, .025], [.185, 1.27, -.18], fin, this.root);
-    for (const x of [-.075, .075]) ellipsoid(scene, 'eye', [.035, .048, .025], [x, 1.13, .189], eyes, this.root);
-    ellipsoid(scene, 'torso', [.30, .36, .25], [0, .83, .015], skin, this.root);
-    ellipsoid(scene, 'shell-top', [.33, .16, .27], [0, .86, .02], pink, this.root);
-    this.arms = [-1, 1].map(side => {
-      const pivot = new TransformNode(`arm-${side}`, scene);
-      pivot.parent = this.root; pivot.position.set(side * .19, .94, 0);
-      ellipsoid(scene, 'arm', [.095, .35, .10], [side * .025, -.15, 0], skin, pivot);
-      return pivot;
-    });
-    this.tail = new TransformNode('tail-pivot', scene);
-    this.tail.parent = this.root; this.tail.position.y = .68;
-    const lower = CreateCylinder('mermaid-tail', { height: .53, diameterTop: .28, diameterBottom: .10, tessellation: 10 }, scene);
-    lower.parent = this.tail; lower.position.y = -.235; lower.material = tail; lower.isPickable = false;
-    this.fins = new TransformNode('fin-pivot', scene);
-    this.fins.parent = this.tail; this.fins.position.y = -.51;
-    for (const side of [-1, 1]) {
-      const fluke = ellipsoid(scene, 'tail-fin', [.28, .12, .23], [side * .105, -.04, -.025], fin, this.fins);
-      fluke.rotation.z = side * .25;
-    }
-  }
-  update(x, y, height, phase, laneTarget) {
-    this.root.position.set(x, y, 0);
-    // Crouch changes the visible envelope at the same instant as the collider.
-    this.root.scaling.y = height / 1.4;
-    this.root.rotation.z = Math.max(-.06, Math.min(.06, (x - laneTarget) * .04));
-    this.tail.rotation.x = Math.sin(phase * 2) * .06;
-    this.fins.rotation.x = Math.sin(phase * 2 + .8) * .14;
-    this.arms[0].rotation.x = Math.sin(phase * 2) * .12;
-    this.arms[1].rotation.x = -Math.sin(phase * 2) * .12;
-  }
+// Rig and sculpted geometry live separately from the scenery.
+export class NicoleModel extends NicoleRig {
+  constructor(scene) { super(scene, (name, hex) => seaMaterial(scene, `nicole-${name}`, hex)); }
 }
 
 function coralSource(scene, name, mat) {
@@ -102,10 +62,14 @@ export class UnderwaterWorld {
     const stone = seaMaterial(scene, 'seaside-stone', '#9cc7bf');
     const bubble = seaMaterial(scene, 'bubble-rim', '#d3efdf', .18);
     const sources = [coralSource(scene, 'pink-coral-source', coralPink), coralSource(scene, 'lilac-coral-source', coralLavender)];
-    const kelp = CreateCylinder('kelp-source', { height: 2.7, diameterTop: .06, diameterBottom: .23, tessellation: 5 }, scene);
-    // Bake the offset so the instanced plant origin stays on the seabed.
-    kelp.position.y = 1.35; kelp.bakeCurrentTransformIntoVertices(); kelp.position.y = 0;
-    kelp.material = green; kelp.isVisible = false; kelp.isPickable = false; sources.push(kelp);
+    const kelpParts = [];
+    for(let i=0;i<4;i++) {
+      const frond=leaf(scene, 'kelp-leaf', 1.7+i*.24, .30, green);
+      frond.rotation.z=(i-1.5)*.14;frond.rotation.y=i*.9;
+      kelpParts.push(frond);
+    }
+    const kelp=Mesh.MergeMeshes(kelpParts,true,true);kelp.name='kelp-source';
+    kelp.material=green;kelp.isVisible=false;kelp.isPickable=false;sources.push(kelp);
     const rock = ellipsoid(scene, 'rock-source', [1.3, .7, 1.1], [0, .3, 0], stone);
     rock.bakeCurrentTransformIntoVertices(); rock.position.set(0, 0, 0); rock.scaling.set(1, 1, 1);
     rock.isVisible = false; sources.push(rock);
@@ -121,12 +85,22 @@ export class UnderwaterWorld {
     });
     const ring = CreateTorus('bubble-source', { diameter: .16, thickness: .012, tessellation: 12 }, scene);
     ring.material = bubble; ring.isVisible = false; ring.isPickable = false;
-    this.bubbles = Array.from({ length: 10 }, (_, i) => {
+    this.bubbles = Array.from({ length: 28 }, (_, i) => {
       const mesh = ring.createInstance(`bubble-${i}`); mesh.isPickable = false;
       mesh.rotation.x = Math.PI / 2;
-      mesh.position.x = (i % 2 ? 1 : -1) * (4.3 + random() * 1.8);
-      return { mesh, offset: random() * 140, phase: random() * 7 };
+      mesh.position.x = (i % 2 ? 1 : -1) * (4.4 + random() * 1.7);
+      const size=.55+random()*1.1;mesh.scaling.setAll(size);
+      return { mesh, offset: Math.floor(i/4)*18, phase: (i%4)*1.7, baseX: mesh.position.x };
     });
+    this.fish = new FishSchool(scene, (name, color) => seaMaterial(scene, name, color));
+  }
+  setQuality(ratio) {
+    const low=ratio<=1;
+    if(this.lowDensity===low)return;
+    this.lowDensity=low;
+    this.props.forEach((p,i)=>p.mesh.setEnabled(!low||Math.floor(i/2)%2===0));
+    this.bubbles.forEach((b,i)=>b.mesh.setEnabled(!low||Math.floor(i/2)%2===0));
+    this.fish.fish.forEach((f,i)=>f.root.setEnabled(!low||i%2===0));
   }
   update(distance) {
     for (const p of this.props) {
@@ -134,8 +108,10 @@ export class UnderwaterWorld {
       if (p.plant) p.mesh.rotation.z = Math.sin(distance * .09 + p.phase) * .055;
     }
     for (const b of this.bubbles) {
-      b.mesh.position.z = ((b.offset - distance * .65) % 145 + 145) % 145 - 10;
-      b.mesh.position.y = .8 + ((distance * .035 + b.phase) % 5.5);
+      b.mesh.position.z = ((b.offset - distance) % 145 + 145) % 145 - 10;
+      b.mesh.position.y = .12 + ((distance * .12 + b.phase) % 6.8);
+      b.mesh.position.x=b.baseX+Math.sin(distance*.15+b.phase)*.12;
     }
+    this.fish.update(distance);
   }
 }

@@ -1,6 +1,6 @@
 # Nicole no Fundo do Mar · runner 3D
 
-Runner mobile em Babylon.js. **Etapas 1 e 2 aprovadas pelo usuário no aparelho**. Etapa 3 em avaliação: Nicole como sereia estilizada, cenário submarino e interface em cores suaves. Castelo, pérolas/missão e áudio seguem para etapas posteriores.
+Runner mobile em Babylon.js. **Etapas 1 e 2 aprovadas pelo usuário no aparelho**. Etapa 3 em avaliação: Nicole articulada com cauda deformável, obstáculos submarinos, areia com relevo, corais, cardumes e bolhas ascendentes. Castelo, pérolas/missão e áudio seguem para etapas posteriores.
 
 **Status: visual da etapa 3 implementado; aguardando avaliação no celular.** A aprovação anterior é do teste do usuário, não certificação em todos os aparelhos.
 

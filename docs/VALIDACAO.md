@@ -76,3 +76,12 @@ Base mecânica aceita pelo usuário em teste próprio (“Está ótimo”). Nova
 Build aprovado. Entrada JS ~1,05 MB / 252 kB gzip (antes ~246 kB gzip); sem modelos, fontes ou texturas baixados de servidores externos. Aviso de chunk >500 kB permanece. Foram adicionados 66 meshes à cena, incluindo fontes e instâncias; medir FPS no celular antes de aprovar a fase visual.
 
 Navegador remoto anteriormente retornou WebGL indisponível; não apresentar esta implementação como visualmente validada naquele navegador. Conferir no aparelho: personagem legível de costas, cenário nas laterais, cores de obstáculos distintas, agachamento, nenhuma piscada e fluidez semelhante à base aprovada. Se necessário, reduzir densidade de cenário sem mudar mecânica.
+
+
+## Aprofundamento visual solicitado após primeira versão
+
+18 testes aprovados: regressões de mecânica, primeira barra, política de resize, construção e reaproveitamento da arte, poses distintas, mergulho com escala global 1 e cabeça abaixo de 0,68 m, envelopes dos obstáculos, uma variante ativa por slot, fauna fora das faixas e segmentos de areia contíguos. NullEngine verifica integração/geometria, não GPU/FPS. Prévia auxiliar CPU das vistas de frente/costas/mergulho inspecionada; não é screenshot do jogo nem validação da iluminação final.
+
+A nova revisão inclui uma Nicole reconstruída, câmera mais próxima, obstáculos com relevo, piso com ondulações e cor por vértice, 12 peixes e 28 bolhas. O aumento visual eleva o custo de renderização. Densidade reduzida acompanha o ajuste automático de resolução; é indispensável comparar fluidez e legibilidade no celular. Ainda não se declara equivalência ao acabamento de Subway Surfers nem aprovação da etapa visual. O navegador remoto conhecido continua sem WebGL.
+
+Verificar no aparelho: nado/cauda/hair sem rigidez ou saltos, distinção subida/queda, mergulho sem achatar, obstáculos legíveis, cardumes/bolhas laterais, piso sem emendas visíveis, ausência de piscadas e estabilidade de FPS. Castelo/missão/áudio continuam pendentes.
