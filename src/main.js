@@ -19,7 +19,7 @@ function syncUI() {
   $('overlay').hidden = running; $('hud').hidden = !running; $('hint').hidden = !running;
   if (running) { canvas.focus({ preventScroll: true }); return; }
   if (runner.state === 'paused') { $('title').textContent = 'Corrida pausada'; $('message').textContent = 'Tudo parado. Continue quando estiver pronta.'; primary.textContent = 'Continuar'; }
-  if (runner.state === 'over') { $('title').textContent = 'Vamos de novo?'; $('message').textContent = `Você percorreu ${Math.floor(runner.distance)} m. Desvie dos blocos altos e salte os baixos.`; primary.textContent = 'Jogar novamente'; }
+  if (runner.state === 'over') { $('title').textContent = 'Vamos de novo?'; $('message').textContent = `Você percorreu ${Math.floor(runner.distance)} m. Amarelo: saltar. Roxo: desviar. Barra verde: agachar.`; primary.textContent = 'Jogar novamente'; }
   if (runner.state !== 'ready') primary.focus({ preventScroll: true });
 }
 function resetTiming() { last = performance.now(); clock.reset(); metrics.reset(); warmup = 0; slowWindows = 0; lastQualityCheck = 0; input?.cancel(); }

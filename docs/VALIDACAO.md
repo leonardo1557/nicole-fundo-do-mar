@@ -45,3 +45,14 @@ A publicação não representa aprovação das etapas 1 e 2. É necessário abri
 | Navegador remoto — URL pública | Página carregada; Engine impedido por WebGL indisponível |
 | Jogabilidade no navegador com WebGL | Pendente |
 | Celular físico | Pendente — gate de conclusão aberto |
+
+
+## Revisão após teste do usuário — salto e agachamento
+
+O usuário relatou boa jogabilidade geral no aparelho, mas mortes durante saltos que pareciam possíveis. Modelo do aparelho, navegador e métricas não informados. Isso é evidência positiva de uso real, não aprovação da revisão abaixo.
+
+Hipótese encontrada no código: janela curta de passagem sobre o bloco baixo. Salto passou de ~0,733 s para ~0,873 s; altura de ~1,61 m para ~2,09 m; tolerância superior de 3 cm para 10 cm. Blocos altos continuam exigindo desvio. Sem vídeo do caso original, não se afirma ter reproduzido cada morte relatada.
+
+Incluído agachamento por swipe para baixo/seta para baixo/S, duração de 0,8 s e barras verdes suspensas. Cabe na arquitetura existente, sem motor físico, animações finais ou novas dependências. Mantém-se agachado enquanto a barra já sobre a personagem termina de passar, evitando morte por levantar automaticamente.
+
+12 testes passaram e build aprovado. Novos testes: salto com chegada ao centro do obstáculo em 0,18/0,30/0,50/0,68 s nas velocidades 12/16/20 m/s; saltos muito tardios/antecipados continuam colidindo; barra colide em pé e permite agachamento; agachar não atravessa blocos no chão; pausa, troca de faixa, retorno automático, reset e swipe para baixo. Teste visual continua limitado pelo WebGL indisponível no navegador remoto. Requer reteste desta revisão no aparelho.

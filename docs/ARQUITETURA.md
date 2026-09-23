@@ -15,7 +15,8 @@ Fluxo: entrada altera intenção → simulação calcula posição a 120 Hz → 
 
 - Faixas espaçadas 2,25 m; troca de uma faixa em ~141 ms. Permite enfileirar a segunda faixa.
 - Velocidade 12 a 20 m/s, aceleração 0,12 m/s².
-- Salto com velocidade vertical 8,8 m/s, gravidade 24 m/s²; duração ~0,733 s, altura ~1,61 m.
+- Salto com velocidade vertical 9,6 m/s, gravidade 22 m/s²; duração ~0,873 s, altura ~2,09 m. Tolerância de 0,10 m no topo dos blocos apoiados no chão.
+- Agachamento de 0,8 s e altura 0,65 m, com retorno automático após a barra que já está sobre a personagem liberar passagem. Swipe para baixo durante salto prepara agachamento ao pousar. Barras verdes começam a 1 m do chão, com 1 m de altura; entram após três linhas iniciais e reutilizam o mesmo pool.
 - Obstáculo baixo 0,8 m e alto 3,1 m. Hitbox da personagem: 0,64 × 1,4 × 0,64 m.
 - Colisão por segmento relativo contra AABB expandido; considera x, y e z e impede atravessamento em quedas de FPS.
 - Linhas a cada 26 m (mínimo 1,3 s na velocidade máxima). Sempre sobra uma faixa; duas trocas levam ~0,282 s. Primeira linha a 60 m.

@@ -10,8 +10,8 @@ export function seededRandom(seed = 1) {
 export function sweptHit(before, after, obstacle, oldZ) {
   const from = [before.x - obstacle.x, before.y, -oldZ];
   const to = [after.x - obstacle.x, after.y, -obstacle.z];
-  const min = [-C.obstacleWidth / 2 - C.playerHalfWidth, -C.playerHeight, -C.obstacleDepth / 2 - C.playerHalfDepth];
-  const max = [C.obstacleWidth / 2 + C.playerHalfWidth, obstacle.height - 0.03, C.obstacleDepth / 2 + C.playerHalfDepth];
+  const min = [-C.obstacleWidth / 2 - C.playerHalfWidth, (obstacle.bottom || 0) - (after.height ?? C.playerHeight), -C.obstacleDepth / 2 - C.playerHalfDepth];
+  const max = [C.obstacleWidth / 2 + C.playerHalfWidth, (obstacle.bottom || 0) + obstacle.height - (obstacle.bottom ? 0.03 : C.jumpClearance), C.obstacleDepth / 2 + C.playerHalfDepth];
   let enter = 0, leave = 1;
   for (let axis = 0; axis < 3; axis++) {
     const delta = to[axis] - from[axis];
@@ -30,12 +30,12 @@ export class Runner {
   constructor({ seed = Date.now(), scenario = 'normal' } = {}) {
     this.seed = seed; this.scenario = scenario;
     this.obstacles = Array.from({ length: C.poolSize }, (_, id) => ({ id, active: false, x: 0, z: 0, previousZ: 0, height: 0 }));
-    this.player = { lane: 1, x: 0, y: 0, vy: 0 };
+    this.player = { lane: 1, x: 0, y: 0, vy: 0, height: C.playerHeight, crouch: 0 };
     this.previous = { x: 0, y: 0, distance: 0 };
     this.reset();
   }
   reset() {
-    Object.assign(this.player, { lane: 1, x: 0, y: 0, vy: 0 });
+    Object.assign(this.player, { lane: 1, x: 0, y: 0, vy: 0, height: C.playerHeight, crouch: 0 });
     Object.assign(this.previous, { x: 0, y: 0, distance: 0 });
     this.random = seededRandom(this.seed);
     this.state = 'ready'; this.distance = 0; this.speed = C.initialSpeed;
@@ -51,28 +51,34 @@ export class Runner {
     if (this.state !== 'running') return false;
     if (action === 'left' || action === 'right') this.player.lane = Math.max(0, Math.min(2, this.player.lane + (action === 'left' ? -1 : 1)));
     else if (action === 'jump') this.jumpQueued = C.jumpBuffer;
+    else if (action === 'crouch') {
+      // A down swipe in the air prepares crouching on landing; no teleport.
+      this.player.crouch = C.crouchDuration;
+      this.jumpQueued = 0;
+    }
     else return false;
     this.lastAction = action; this.commands++;
     return true;
   }
-  spawn(lane, z, height) {
+  spawn(lane, z, height, bottom = 0) {
     const slot = this.obstacles.find(o => !o.active);
     if (!slot) throw new Error('Obstacle pool exhausted');
-    Object.assign(slot, { active: true, lane, x: (lane - 1) * C.laneWidth, z, previousZ: z, height });
+    Object.assign(slot, { active: true, lane, x: (lane - 1) * C.laneWidth, z, previousZ: z, height, bottom });
   }
   fillAhead() {
     if (this.scenario === 'empty') return;
     while (this.nextRow - this.distance < C.horizon) {
       const z = this.nextRow - this.distance;
-      if (this.scenario === 'low' || this.scenario === 'high') {
-        if (this.row === 0) this.spawn(1, z, this.scenario === 'low' ? C.lowHeight : C.highHeight);
+      if (this.scenario === 'low' || this.scenario === 'high' || this.scenario === 'overhead') {
+        if (this.row === 0) this.spawn(1, z, this.scenario === 'overhead' ? C.overheadHeight : this.scenario === 'low' ? C.lowHeight : C.highHeight, this.scenario === 'overhead' ? C.overheadBottom : 0);
       } else {
         // Opening rows teach low/high blocks. Every row has at least one open
         // lane; 26m leaves >=1.3s at top speed (two lane switches take 0.282s).
         const openLane = Math.floor(this.random() * 3);
         const count = this.row < 3 ? 1 : (this.random() < 0.55 ? 2 : 1);
         const lane = (openLane + 1) % 3;
-        this.spawn(lane, z, this.row % 3 === 0 ? C.lowHeight : C.highHeight);
+        if (this.row >= 3 && this.row % 4 === 3) this.spawn(lane, z, C.overheadHeight, C.overheadBottom);
+        else this.spawn(lane, z, this.row % 3 === 0 ? C.lowHeight : C.highHeight);
         if (count === 2) this.spawn((openLane + 2) % 3, z, this.random() < 0.5 ? C.lowHeight : C.highHeight);
       }
       this.row++; this.nextRow += C.rowSpacing;
@@ -81,10 +87,18 @@ export class Runner {
   step(dt) {
     if (this.state !== 'running') return;
     const p = this.player;
+    // Stay low until a bar already overhead clears, avoiding automatic stand-up deaths.
+    const underBar = this.obstacles.some(o => o.active && o.bottom > 0 &&
+      Math.abs(o.x - p.x) < C.obstacleWidth / 2 + C.playerHalfWidth &&
+      Math.abs(o.z) < C.obstacleDepth / 2 + C.playerHalfDepth + 0.1);
+    if (p.y === 0) {
+      p.crouch = Math.max(0, p.crouch - dt);
+      p.height = p.crouch > 0 || (p.height < C.playerHeight && underBar) ? C.crouchHeight : C.playerHeight;
+    }
     Object.assign(this.previous, { x: p.x, y: p.y, distance: this.distance });
     const target = (p.lane - 1) * C.laneWidth;
     p.x += Math.sign(target - p.x) * Math.min(Math.abs(target - p.x), C.laneSpeed * dt);
-    if (this.jumpQueued > 0 && p.y === 0) { p.vy = C.jumpVelocity; this.jumpQueued = 0; }
+    if (this.jumpQueued > 0 && p.y === 0 && !underBar) { p.vy = C.jumpVelocity; p.height = C.playerHeight; p.crouch = 0; this.jumpQueued = 0; }
     this.jumpQueued = Math.max(0, this.jumpQueued - dt);
     if (p.y > 0 || p.vy > 0) {
       p.y += p.vy * dt - 0.5 * C.gravity * dt * dt;

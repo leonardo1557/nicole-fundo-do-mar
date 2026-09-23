@@ -36,6 +36,7 @@ export class RunnerView {
     const floor = material('floor', '#246070'), stripe = material('lane-lines', '#59929a');
     const player = material('player-placeholder', '#ffc2dc');
     this.lowMaterial = material('jumpable-block', '#e2bd67');
+    this.overheadMaterial = material('crouch-bar', '#7dcbbf');
     this.highMaterial = material('dodge-block', '#9f87c8');
     const box = (name, width, height, depth, x, y, z, mat) => {
       const mesh = CreateBox(name, { width, height, depth }, this.scene);
@@ -61,16 +62,17 @@ export class RunnerView {
   }
   draw(alpha) {
     const s = this.runner, lerp = (a, b) => a + (b - a) * alpha;
-    this.avatar.position.set(lerp(s.previous.x, s.player.x), lerp(s.previous.y, s.player.y) + C.playerHeight / 2, 0);
+    this.avatar.scaling.y = s.player.height / C.playerHeight;
+    this.avatar.position.set(lerp(s.previous.x, s.player.x), lerp(s.previous.y, s.player.y) + s.player.height / 2, 0);
     const distance = lerp(s.previous.distance, s.distance);
     for (let i = 0; i < this.markers.length; i++) this.markers[i].position.z = ((i * 8 - distance) % 160 + 160) % 160 - 12;
     for (const o of s.obstacles) {
       const mesh = this.meshes[o.id];
       mesh.setEnabled(o.active);
       if (!o.active) continue;
-      mesh.position.set(o.x, o.height / 2, lerp(o.previousZ, o.z));
+      mesh.position.set(o.x, (o.bottom || 0) + o.height / 2, lerp(o.previousZ, o.z));
       mesh.scaling.y = o.height;
-      mesh.material = o.height === C.lowHeight ? this.lowMaterial : this.highMaterial;
+      mesh.material = o.bottom > 0 ? this.overheadMaterial : o.height === C.lowHeight ? this.lowMaterial : this.highMaterial;
     }
     this.scene.render();
   }

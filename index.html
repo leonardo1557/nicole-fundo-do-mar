@@ -8,21 +8,21 @@
 </head>
 <body>
   <main id="app">
-    <canvas id="game" tabindex="0" aria-label="Pista 3D. Deslize para os lados e para cima para saltar."></canvas>
+    <canvas id="game" tabindex="0" aria-label="Pista 3D. Deslize para os lados e para cima para saltar e para baixo para agachar."></canvas>
     <header id="hud" hidden><span><b id="distance">0</b> m</span><button id="pause" aria-label="Pausar corrida">Pausar</button></header>
-    <div id="hint" hidden>← → mudar de faixa &nbsp; ↑ saltar</div>
+    <div id="hint" hidden>← → mudar de faixa &nbsp; ↑ saltar · ↓ agachar</div>
     <section id="overlay" aria-labelledby="title">
       <div class="card">
         <p class="eyebrow">PROTÓTIPO 3D · ETAPAS 1 E 2</p>
         <h1 id="title">Nicole no<br>Fundo do Mar</h1>
-        <p id="message">Deslize para os lados para desviar.<br>Deslize para cima para saltar os blocos baixos.</p>
+        <p id="message">Deslize para os lados para desviar.<br>↑ Salte os blocos amarelos.<br>↓ Agache sob as barras verdes.<br>Desvie dos blocos roxos.</p>
         <button id="primary" disabled>Carregando 3D…</button>
-        <p class="small" id="help">No computador: setas ou A / D e espaço.</p>
+        <p class="small" id="help">No computador: setas ou A / D, espaço e S.</p>
       </div>
     </section>
     <output id="diagnostics" hidden aria-label="Diagnóstico da corrida"></output>
     <aside id="qa" hidden aria-label="Controles de teste">
-      <label>Cenário <select id="scenario"><option value="normal">Normal</option><option value="empty">Sem obstáculos</option><option value="low">Bloco baixo central</option><option value="high">Bloco alto central</option></select></label>
+      <label>Cenário <select id="scenario"><option value="normal">Normal</option><option value="empty">Sem obstáculos</option><option value="low">Bloco baixo central</option><option value="high">Bloco alto central</option><option value="overhead">Barra suspensa central</option></select></label>
       <button id="apply-scenario">Reiniciar cenário</button>
     </aside>
     <noscript>Ative JavaScript para jogar.</noscript>

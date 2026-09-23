@@ -25,8 +25,8 @@ test('lane changes are bounded, reach one lane under 150ms and work midair', () 
 test('jump lands exactly, has no double jump and supports late landing buffer', () => {
   const r = empty(); r.command('jump'); tick(r, 0.2); const velocity = r.player.vy;
   r.command('jump'); tick(r, 0.1); assert.ok(r.player.vy < velocity);
-  tick(r, 0.45); assert.equal(r.player.y, 0);
-  r.command('jump'); tick(r, 0.68); r.command('jump'); tick(r, 0.1); assert.ok(r.player.vy > 0);
+  tick(r, 0.6); assert.equal(r.player.y, 0);
+  r.command('jump'); tick(r, 0.8); r.command('jump'); tick(r, 0.1); assert.ok(r.player.vy > 0);
 });
 test('low block kills grounded player, can be jumped, high block cannot', () => {
   const ground = empty(); ground.spawn(1, 4, C.lowHeight); tick(ground, 1); assert.equal(ground.state, 'over');
@@ -74,4 +74,48 @@ test('swipe fires before release, once per gesture, ignores secondary pointer an
   s.start(4, 100, 100); s.move(4, 102, 60); s.cancel();
   s.start(5, 100, 100); s.cancel(); s.end(5, 200, 100);
   assert.deepEqual(actions, ['right', 'left', 'jump']);
+});
+
+test('jump timing window covers early and late inputs across running speeds', () => {
+  for (const speed of [12, 16, 20]) {
+    for (const arrival of [0.18, 0.3, 0.5, 0.68]) {
+      const r = empty(); r.speed = speed; r.spawn(1, speed * arrival, C.lowHeight);
+      r.command('jump'); tick(r, 1.2);
+      assert.equal(r.state, 'running', `speed ${speed}, arrival ${arrival}`);
+    }
+    for (const arrival of [0.02, 1.05]) {
+      const r = empty(); r.speed = speed; r.spawn(1, speed * arrival, C.lowHeight);
+      r.command('jump'); tick(r, 1.4); assert.equal(r.state, 'over');
+    }
+  }
+});
+test('overhead bar hits standing or jumping, crouch passes, ground blocks still hit', () => {
+  for (const action of [null, 'jump', 'crouch']) {
+    const r = empty(); r.spawn(1, 4, C.overheadHeight, C.overheadBottom);
+    if (action) r.command(action);
+    tick(r, 0.6); assert.equal(r.state, action === 'crouch' ? 'running' : 'over');
+  }
+  for (const height of [C.lowHeight, C.highHeight]) {
+    const r = empty(); r.spawn(1, 4, height); r.command('crouch'); tick(r, 0.6);
+    assert.equal(r.state, 'over');
+  }
+});
+test('crouch can switch lanes, pauses, resets, and waits for overhead clearance', () => {
+  const r = empty(); r.command('crouch'); r.command('left'); tick(r, 0.15);
+  assert.equal(r.player.height, C.crouchHeight); assert.equal(r.player.x, -C.laneWidth);
+  r.pause(); const remaining = r.player.crouch; tick(r, 1); assert.equal(r.player.crouch, remaining);
+  r.resume(); tick(r, 1); assert.equal(r.player.height, C.playerHeight);
+  r.start(); assert.equal(r.player.crouch, 0); assert.equal(r.player.height, C.playerHeight);
+  r.command('crouch'); tick(r, 0.75); r.spawn(1, 0.8, C.overheadHeight, C.overheadBottom);
+  tick(r, 0.08); assert.equal(r.player.height, C.crouchHeight); assert.equal(r.state, 'running');
+  tick(r, 0.2); assert.equal(r.player.height, C.playerHeight); assert.equal(r.state, 'running');
+});
+test('down swipe is one crouch command; jump cancels crouch in open space', () => {
+  const actions = [], s = new Swipe(a => actions.push(a));
+  s.start(1, 100, 100); s.move(1, 100, 130); s.end(1, 100, 160);
+  assert.deepEqual(actions, ['crouch']);
+  const r = empty(); r.command('crouch'); tick(r, 0.1); r.command('jump'); tick(r, 0.1);
+  assert.ok(r.player.y > 0); assert.equal(r.player.height, C.playerHeight);
+  r.command('crouch'); tick(r, 0.9);
+  assert.equal(r.player.height, C.crouchHeight); assert.equal(r.player.y, 0);
 });
