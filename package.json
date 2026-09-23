@@ -1,0 +1,6 @@
+{
+  "name": "nicole-fundo-do-mar", "version": "0.2.0", "private": true, "type": "module",
+  "scripts": { "dev": "vite --host 0.0.0.0", "build": "vite build", "preview": "vite preview --host 0.0.0.0", "test": "node --test tests/*.test.js" },
+  "dependencies": { "@babylonjs/core": "9.27.1" },
+  "devDependencies": { "vite": "8.3.0" }
+}
